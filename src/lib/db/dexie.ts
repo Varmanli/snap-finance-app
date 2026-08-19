@@ -45,3 +45,35 @@ export const DEFAULT_SETTINGS: Settings = {
   goalTargetDate: '2027-03-21', // 1 Farvardin 1406
   updatedAt: new Date().toISOString(),
 };
+
+/**
+ * Completely wipes all Dexie tables, deletes IndexedDB database, clears browser storage,
+ * and performs a hard window reload to reset the application to pristine zero state.
+ */
+export async function hardResetLocalDatabase() {
+  try {
+    // Clear all tables
+    await Promise.all(db.tables.map((table) => table.clear()));
+
+    // Close active connection and delete IndexedDB
+    await db.close();
+    await Dexie.delete('SnappDriverFinanceDB');
+
+    // Clear browser storage fallbacks
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+
+    // Hard reload
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+  } catch (error) {
+    console.error('Failed to reset DB:', error);
+    if (typeof window !== 'undefined' && window.indexedDB) {
+      window.indexedDB.deleteDatabase('SnappDriverFinanceDB');
+      window.location.href = '/';
+    }
+  }
+}

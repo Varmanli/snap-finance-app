@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, DEFAULT_SETTINGS } from '@/lib/db/dexie';
+import { db, DEFAULT_SETTINGS, hardResetLocalDatabase } from '@/lib/db/dexie';
 import { seedDatabaseIfEmpty } from '@/lib/db/seed';
 import { exportBackupJSON, validateBackupJSON, restoreBackupJSON } from '@/lib/backup/export-import';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -28,6 +28,7 @@ export default function SettingsPage() {
 
   // Clear data state modal
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   useEffect(() => {
     if (settingsList.length > 0) {
@@ -97,22 +98,13 @@ export default function SettingsPage() {
   };
 
   const handleClearAllData = async () => {
+    setIsClearing(true);
     try {
-      await db.transaction('rw', [db.dailyRecords, db.vehicleExpenses, db.maintenanceServices, db.capitalTransactions, db.personalGoals, db.settings], async () => {
-        await db.dailyRecords.clear();
-        await db.vehicleExpenses.clear();
-        await db.maintenanceServices.clear();
-        await db.capitalTransactions.clear();
-        await db.personalGoals.clear();
-        await db.settings.clear();
-        await db.settings.put(DEFAULT_SETTINGS);
-      });
-      setIsClearModalOpen(false);
-      alert('تمام اطلاعات پایگاه داده با موفقیت پاک شد و سیستم به حالت خام اولیه بازگشت.');
-      window.location.reload();
+      await hardResetLocalDatabase();
     } catch (err) {
       console.error('Failed to clear database:', err);
       alert('خطا در پاکسازی پایگاه داده.');
+      setIsClearing(false);
     }
   };
 
@@ -420,9 +412,10 @@ export default function SettingsPage() {
             </button>
             <button
               onClick={handleClearAllData}
-              className="rounded-xl bg-rose-600 hover:bg-rose-500 px-5 py-2 font-bold text-white shadow-lg shadow-rose-950/60 cursor-pointer transition-all"
+              disabled={isClearing}
+              className="rounded-xl bg-rose-600 hover:bg-rose-500 px-5 py-2 font-bold text-white shadow-lg shadow-rose-950/60 cursor-pointer transition-all disabled:opacity-50"
             >
-              پاکسازی قطعی پایگاه داده
+              {isClearing ? 'در حال پاکسازی...' : 'پاکسازی قطعی پایگاه داده'}
             </button>
           </div>
         </div>
