@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
 import { Settings as SettingsType, BackupData } from '@/types';
 import { formatToman, formatNumber } from '@/lib/formatters/currency';
-import { Settings, Save, Download, Upload, RefreshCw, Car, Target, ShieldCheck, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Settings, Save, Download, Upload, RefreshCw, Car, Target, ShieldCheck, CheckCircle, AlertTriangle, Trash2 } from 'lucide-react';
 
 export default function SettingsPage() {
   const settingsList = useLiveQuery(() => db.settings.toArray(), []) || [];
@@ -25,6 +25,9 @@ export default function SettingsPage() {
   const [parsedBackup, setParsedBackup] = useState<BackupData | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  // Clear data state modal
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   useEffect(() => {
     if (settingsList.length > 0) {
@@ -90,6 +93,26 @@ export default function SettingsPage() {
       setIsSeeding(false);
       alert('داده‌های ۳۰ روز شیفت کاری اسنپ مجدداً تولید گردید.');
       window.location.reload();
+    }
+  };
+
+  const handleClearAllData = async () => {
+    try {
+      await db.transaction('rw', [db.dailyRecords, db.vehicleExpenses, db.maintenanceServices, db.capitalTransactions, db.personalGoals, db.settings], async () => {
+        await db.dailyRecords.clear();
+        await db.vehicleExpenses.clear();
+        await db.maintenanceServices.clear();
+        await db.capitalTransactions.clear();
+        await db.personalGoals.clear();
+        await db.settings.clear();
+        await db.settings.put(DEFAULT_SETTINGS);
+      });
+      setIsClearModalOpen(false);
+      alert('تمام اطلاعات پایگاه داده با موفقیت پاک شد و سیستم به حالت خام اولیه بازگشت.');
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to clear database:', err);
+      alert('خطا در پاکسازی پایگاه داده.');
     }
   };
 
@@ -237,7 +260,7 @@ export default function SettingsPage() {
         </Card>
       </form>
 
-      {/* Backup, Restore & Demo Reset Card */}
+      {/* Backup, Restore, Demo Reset & Clear Data Card */}
       <Card className="border-blue-500/20">
         <CardHeader>
           <CardTitle className="text-blue-400">
@@ -246,16 +269,18 @@ export default function SettingsPage() {
           </CardTitle>
         </CardHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Export JSON */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-zinc-100">
-              <Download className="h-5 w-5 text-emerald-400" />
-              دانلود پشتیبان کامل (JSON)
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-zinc-100">
+                <Download className="h-5 w-5 text-emerald-400" />
+                دانلود پشتیبان کامل (JSON)
+              </div>
+              <p className="text-xs text-zinc-400">
+                استخراج تمامی سوابق شیفت‌ها، قطعات، تراکنش‌ها و تنظیمات در قالب فایل JSON.
+              </p>
             </div>
-            <p className="text-xs text-zinc-400">
-              استخراج تمامی سوابق شیفت‌ها، قطعات، تراکنش‌ها و تنظیمات در قالب فایل JSON نسخه ۱.
-            </p>
             <button
               type="button"
               onClick={exportBackupJSON}
@@ -266,31 +291,36 @@ export default function SettingsPage() {
           </div>
 
           {/* Import JSON */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-zinc-100">
-              <Upload className="h-5 w-5 text-blue-400" />
-              بازیابی از فایل پشتیبان
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-zinc-100">
+                <Upload className="h-5 w-5 text-blue-400" />
+                بازیابی از فایل پشتیبان
+              </div>
+              <p className="text-xs text-zinc-400">
+                بارگذاری فایل JSON و جایگزینی داده‌های قبلی مرورگر با تایید ساختار.
+              </p>
             </div>
-            <p className="text-xs text-zinc-400">
-              بارگذاری فایل JSON و جایگزینی داده‌های قبلی مرورگر با تایید ساختار.
-            </p>
-
-            <label className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 py-2 text-xs font-bold transition-all cursor-pointer">
-              <span>انتخاب فایل JSON</span>
-              <input type="file" accept=".json" onChange={handleFileChange} className="hidden" />
-            </label>
-            {importError && <p className="text-[11px] text-rose-400">{importError}</p>}
+            <div>
+              <label className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 py-2 text-xs font-bold transition-all cursor-pointer">
+                <span>انتخاب فایل JSON</span>
+                <input type="file" accept=".json" onChange={handleFileChange} className="hidden" />
+              </label>
+              {importError && <p className="text-[11px] text-rose-400 mt-1">{importError}</p>}
+            </div>
           </div>
 
           {/* Reset 30-Day Seed Demo */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-zinc-100">
-              <RefreshCw className="h-5 w-5 text-amber-400" />
-              تولید داده آزمایشی ۳۰ روزه
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 space-y-3 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-zinc-100">
+                <RefreshCw className="h-5 w-5 text-amber-400" />
+                تولید داده آزمایشی ۳۰ روزه
+              </div>
+              <p className="text-xs text-zinc-400">
+                بازنشانی پایگاه‌داده محلی و تولید ۳۰ روز داده واقعی اسنپ جهت تست و دمو.
+              </p>
             </div>
-            <p className="text-xs text-zinc-400">
-              بازنشانی پایگاه‌داده محلی و تولید ۳۰ روز داده واقعی اسنپ جهت تست و دمو.
-            </p>
             <button
               type="button"
               onClick={handleResetMockData}
@@ -298,6 +328,27 @@ export default function SettingsPage() {
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 py-2 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
             >
               <span>{isSeeding ? 'در حال تولید...' : 'تولید داده‌های ۳۰ روزه دمو'}</span>
+            </button>
+          </div>
+
+          {/* Clear All Data (Reset Database) */}
+          <div className="rounded-xl border border-rose-500/30 bg-rose-950/10 p-4 space-y-3 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-rose-400">
+                <Trash2 className="h-5 w-5 text-rose-500" />
+                پاک کردن و ریست تمام اطلاعات
+              </div>
+              <p className="text-xs text-zinc-400">
+                حذف کامل تمام شیفت‌ها، تراکنش‌ها و هزینه‌ها و بازگرداندن برنامه به حالت خام اولیه.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsClearModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white py-2 text-xs font-bold transition-all cursor-pointer shadow-lg shadow-rose-950/50"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>پاک کردن تمام داده‌ها</span>
             </button>
           </div>
         </div>
@@ -342,6 +393,40 @@ export default function SettingsPage() {
           </div>
         </Modal>
       )}
+
+      {/* Clear All Data Confirmation Modal */}
+      <Modal
+        isOpen={isClearModalOpen}
+        onClose={() => setIsClearModalOpen(false)}
+        title="ریست قطعی و پاکسازی تمام اطلاعات"
+      >
+        <div className="space-y-4 text-xs text-zinc-300">
+          <div className="rounded-xl border border-rose-500/40 bg-rose-950/30 p-3.5 text-rose-200 flex items-start gap-2.5">
+            <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <strong className="text-sm font-bold text-rose-300">هشدار بسیار مهم:</strong>
+              <p>
+                آیا مطمئن هستید؟ تمام اطلاعات ثبت‌شده، سوابق شیفت‌ها و هزینه‌ها پاک خواهند شد و برنامه به حالت صفر بازمی‌گردد. این عملیات غیرقابل بازگشت است.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-zinc-800">
+            <button
+              onClick={() => setIsClearModalOpen(false)}
+              className="rounded-xl px-4 py-2 text-zinc-400 hover:bg-zinc-800 transition-colors cursor-pointer"
+            >
+              انصراف
+            </button>
+            <button
+              onClick={handleClearAllData}
+              className="rounded-xl bg-rose-600 hover:bg-rose-500 px-5 py-2 font-bold text-white shadow-lg shadow-rose-950/60 cursor-pointer transition-all"
+            >
+              پاکسازی قطعی پایگاه داده
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
