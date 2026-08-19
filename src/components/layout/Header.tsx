@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { formatJalaliDate, getTodayISO } from '@/lib/formatters/jalali';
+import { InstallPWAButton } from '@/components/layout/InstallPWAButton';
 import { PlusCircle, Car, ShieldCheck } from 'lucide-react';
 
 interface HeaderProps {
@@ -33,8 +34,10 @@ export function Header({ onOpenQuickRecord }: HeaderProps) {
           </div>
         </div>
 
-        {/* Quick Action CTA Button */}
+        {/* Quick Action CTA Button & PWA Install Prompt */}
         <div className="flex items-center gap-2 shrink-0">
+          <InstallPWAButton />
+
           <button
             onClick={onOpenQuickRecord}
             className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 transition-all duration-200 px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-zinc-950 shadow-lg shadow-emerald-950/60 cursor-pointer"
