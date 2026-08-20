@@ -1,5 +1,5 @@
 import React from 'react';
-import { toPersianDigits } from '@/lib/formatters/currency';
+import { formatDecimal } from '@/lib/formatters/currency';
 
 interface ProgressBarProps {
   progress: number; // 0 to 100
@@ -25,12 +25,14 @@ export function ProgressBar({
     rose: 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]',
   };
 
+  const formattedPercent = clampedProgress % 1 === 0 ? formatDecimal(clampedProgress, 0) : formatDecimal(clampedProgress, 1);
+
   return (
     <div className="w-full">
       {(label || showPercent) && (
-        <div className="flex justify-between items-center text-xs font-medium text-zinc-300 mb-1.5">
-          {label && <span>{label}</span>}
-          {showPercent && <span className="font-bold text-zinc-100">{toPersianDigits(clampedProgress)}٪</span>}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 text-xs font-medium text-zinc-300 mb-1.5">
+          {label && <span className="truncate">{label}</span>}
+          {showPercent && <span className="font-bold text-zinc-100 shrink-0">{formattedPercent}٪</span>}
         </div>
       )}
       <div className={`w-full bg-zinc-800 rounded-full overflow-hidden ${height} p-0.5 border border-zinc-700/50`}>

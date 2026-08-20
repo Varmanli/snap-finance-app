@@ -17,10 +17,10 @@ export function GoalWidget({ forecast, goalTargetAmount }: GoalWidgetProps) {
     <Card className="relative overflow-hidden border-emerald-500/20">
       <CardHeader>
         <CardTitle className="emerald-gradient-text">
-          <Target className="h-5 w-5 text-emerald-400" />
-          هدف بزرگ مالی: خرید خودروی جدید
+          <Target className="h-5 w-5 text-emerald-400 shrink-0" />
+          <span>هدف بزرگ مالی: خرید خودروی جدید</span>
         </CardTitle>
-        <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+        <span className="self-start sm:self-auto text-[11px] sm:text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 whitespace-nowrap">
           هدف: {formatToman(goalTargetAmount)}
         </span>
       </CardHeader>
@@ -36,19 +36,19 @@ export function GoalWidget({ forecast, goalTargetAmount }: GoalWidgetProps) {
         />
 
         {/* 3 Grid Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-1">
           {/* Projected Date */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-start gap-3">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
-              <Calendar className="h-5 w-5" />
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <div className="text-[11px] font-medium text-zinc-400">تاریخ تخمینی تحقق هدف</div>
-              <div className="text-sm font-bold text-zinc-100 mt-0.5">
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-medium text-zinc-400 truncate">تاریخ تخمینی تحقق هدف</div>
+              <div className="text-xs sm:text-sm font-bold text-zinc-100 mt-0.5 truncate">
                 {forecast.projectedCompletionDate || 'در حال محاسبه...'}
               </div>
               {forecast.projectedDaysRemaining !== null && forecast.projectedDaysRemaining > 0 && (
-                <div className="text-[10px] text-emerald-400 mt-0.5">
+                <div className="text-[10px] text-emerald-400 mt-0.5 truncate">
                   ({formatNumber(forecast.projectedDaysRemaining)} روز کاری دیگر)
                 </div>
               )}
@@ -56,30 +56,30 @@ export function GoalWidget({ forecast, goalTargetAmount }: GoalWidgetProps) {
           </div>
 
           {/* 30-Day Moving Average */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-start gap-3">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
-              <TrendingUp className="h-5 w-5" />
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <div className="text-[11px] font-medium text-zinc-400">میانگین پس‌انداز ۳۰ روز اخیر</div>
-              <div className="text-sm font-bold text-amber-400 mt-0.5">
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-medium text-zinc-400 truncate">میانگین پس‌انداز ۳۰ روز اخیر</div>
+              <div className="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 truncate">
                 {formatToman(forecast.average30DayRealDailyProfit)} / روز
               </div>
-              <div className="text-[10px] text-zinc-500 mt-0.5">بر اساس سود واقعی خالص</div>
+              <div className="text-[10px] text-zinc-500 mt-0.5 truncate">بر اساس سود واقعی خالص</div>
             </div>
           </div>
 
           {/* Required Daily Savings to Deadline */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-start gap-3">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
-              <Sparkles className="h-5 w-5" />
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <div className="text-[11px] font-medium text-zinc-400">پس‌انداز مورد نیاز تا ددلاین</div>
-              <div className="text-sm font-bold text-blue-400 mt-0.5">
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-medium text-zinc-400 truncate">پس‌انداز مورد نیاز تا ددلاین</div>
+              <div className="text-xs sm:text-sm font-bold text-blue-400 mt-0.5 truncate">
                 {formatToman(forecast.requiredDailySavingsToDeadline)} / روز
               </div>
-              <div className="text-[10px] text-zinc-500 mt-0.5">هدف زمان‌بندی: ۱ فروردین ۱۴۰۶</div>
+              <div className="text-[10px] text-zinc-500 mt-0.5 truncate">هدف زمان‌بندی: ۱ فروردین ۱۴۰۶</div>
             </div>
           </div>
         </div>
