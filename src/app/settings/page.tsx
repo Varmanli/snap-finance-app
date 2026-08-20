@@ -124,12 +124,12 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="glass-card p-5 border-emerald-500/30">
-        <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-          <Settings className="h-5 w-5 text-emerald-400" />
-          تنظیمات سیستم، پیکربندی نرخ و پشتیبان‌گیری
+      <div className="glass-card p-4 sm:p-5 border-emerald-500/30">
+        <h2 className="text-base sm:text-xl font-bold text-zinc-100 flex items-center gap-2">
+          <Settings className="h-5 w-5 text-emerald-400 shrink-0" />
+          <span>تنظیمات سیستم، پیکربندی نرخ و پشتیبان‌گیری</span>
         </h2>
-        <p className="text-xs text-zinc-400 mt-1">
+        <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
           تنظیم اطلاعات خودرو، سقف درآمد/مسافت روزانه، هدف مالی ۴۰۰ میلیونی و خروجی/ورودی JSON
         </p>
       </div>

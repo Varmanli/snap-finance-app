@@ -40,16 +40,16 @@ export default function VehiclePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-5">
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <Car className="h-7 w-7" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 glass-card p-4 sm:p-5">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+            <Car className="h-6 w-6 sm:h-7 sm:w-7" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
+            <h2 className="text-base sm:text-xl font-bold text-zinc-100 flex items-center gap-2">
               وضعیت سلامت و قطعات {settings.vehicleBrand} ({settings.vehicleModel})
             </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
               کیلومتر فعلی خودرو: <span className="font-bold text-amber-400">{formatNumber(currentKm)} کیلومتر</span>
             </p>
           </div>
@@ -60,10 +60,10 @@ export default function VehiclePage() {
             setSelectedService(null);
             setIsModalOpen(true);
           }}
-          className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 px-4 py-2.5 text-xs font-bold text-zinc-950 transition-all cursor-pointer shrink-0"
+          className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 px-4 py-2 text-xs font-bold text-zinc-950 transition-all cursor-pointer shrink-0 w-full sm:w-auto"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
-          <span>افزودن قطعه جدید</span>
+          <span>تعریف قطعه جدید</span>
         </button>
       </div>
 

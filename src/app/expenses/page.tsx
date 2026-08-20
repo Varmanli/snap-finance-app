@@ -57,20 +57,20 @@ export default function ExpensesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 glass-card p-4 sm:p-5">
         <div>
-          <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-amber-400" />
-            هزینه‌ها و تعمیرات خودرو
+          <h2 className="text-base sm:text-xl font-bold text-zinc-100 flex items-center gap-2">
+            <Receipt className="h-5 w-5 text-amber-400 shrink-0" />
+            <span>هزینه‌ها و تعمیرات خودرو</span>
           </h2>
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
             ثبت هزینه‌های قطعات و تعمیرگاه همراه با امکان برداشت از صندوق استهلاک
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 px-4 py-2 text-xs font-bold text-zinc-950 transition-all cursor-pointer shrink-0"
+          className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 px-4 py-2 text-xs font-bold text-zinc-950 transition-all cursor-pointer shrink-0 w-full sm:w-auto"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
           <span>ثبت هزینه جدید</span>

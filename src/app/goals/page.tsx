@@ -64,21 +64,21 @@ export default function GoalsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-5 border-emerald-500/30">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 glass-card p-4 sm:p-5 border-emerald-500/30">
         <div>
-          <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-            <Target className="h-5 w-5 text-emerald-400" />
-            سرمایه و اهداف مالی / شخصی
+          <h2 className="text-base sm:text-xl font-bold text-zinc-100 flex items-center gap-2">
+            <Target className="h-5 w-5 text-emerald-400 shrink-0" />
+            <span>سرمایه و اهداف مالی / شخصی</span>
           </h2>
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-[11px] sm:text-xs text-zinc-400 mt-1">
             پایش آنلاین پیشرفت هدف خرید خودروی جدید و مدیریت تعادل کار و زندگی
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => setIsCapitalModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 px-3.5 py-2 text-xs font-bold text-zinc-950 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 px-3 py-2 text-xs font-bold text-zinc-950 transition-all cursor-pointer whitespace-nowrap"
           >
             <Plus className="h-4 w-4 stroke-[3]" />
             <span>واریز/برداشت صندوق</span>
@@ -86,7 +86,7 @@ export default function GoalsPage() {
 
           <button
             onClick={() => setIsGoalModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 text-xs font-bold transition-all cursor-pointer"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
           >
             <Heart className="h-4 w-4 text-rose-400" />
             <span>هدف شخصی جدید</span>
