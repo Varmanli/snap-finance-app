@@ -26,7 +26,7 @@ export class SnappDriverDB extends Dexie {
       maintenanceServices: '++id, title, category, nextServiceKm, status',
       capitalTransactions: '++id, date, type, createdAt',
       personalGoals: '++id, title',
-      settings: '++id',
+      settings: 'id', // Fixed primary key id: 1 for single settings row
     });
   }
 }
@@ -35,7 +35,7 @@ export const db = new SnappDriverDB();
 
 export const DEFAULT_SETTINGS: Settings = {
   id: 1,
-  vehicleBrand: 'تیبا ۲ (هاشبک)',
+  vehicleBrand: 'تیبا',
   vehicleModel: 1399,
   initialKm: 100000,
   depreciationRate: 1800, // Toman / km

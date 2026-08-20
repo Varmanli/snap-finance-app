@@ -38,10 +38,10 @@ export default function SettingsPage() {
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updated = { ...formData, updatedAt: new Date().toISOString() };
+    const updated: SettingsType = { ...formData, id: 1, updatedAt: new Date().toISOString() };
     await db.settings.put(updated);
     setIsSaved(true);
-    toast.success('تنظیمات با موفقیت ذخیره گردید.');
+    toast.success('تنظیمات مشخصات خودرو و اهداف با موفقیت ذخیره گردید.');
     setTimeout(() => setIsSaved(false), 3000);
   };
 
