@@ -22,8 +22,20 @@ export function AppClientLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Toast Notifications Provider */}
-      <Toaster position="top-center" dir="rtl" richColors theme="dark" closeButton />
+      {/* Toast Notifications Provider with Vazirmatn Font & Styling */}
+      <Toaster
+        position="top-center"
+        dir="rtl"
+        richColors
+        theme="dark"
+        closeButton
+        toastOptions={{
+          className: 'font-sans text-xs sm:text-sm font-semibold rounded-2xl border border-zinc-800 shadow-xl',
+          style: {
+            fontFamily: 'var(--font-vazirmatn), Vazirmatn, sans-serif',
+          },
+        }}
+      />
 
       {/* Top Header */}
       <Header onOpenQuickRecord={() => setIsQuickRecordOpen(true)} />

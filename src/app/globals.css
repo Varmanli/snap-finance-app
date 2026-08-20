@@ -82,3 +82,10 @@
 .animate-modal {
   animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Sonner Toast Font & Styling Overrides */
+[data-sonner-toaster],
+[data-sonner-toast],
+[data-sonner-toast] * {
+  font-family: var(--font-vazirmatn), 'Vazirmatn', system-ui, sans-serif !important;
+}
