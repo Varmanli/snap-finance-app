@@ -23,7 +23,7 @@ export function Header({ onOpenQuickRecord }: HeaderProps) {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-lg font-bold text-zinc-100 tracking-tight whitespace-nowrap">
-                مدیریت مالی سفیر اسنپ
+                سفیر‌حساب <span className="text-xs text-emerald-400 font-normal hidden sm:inline">(اسنپ)</span>
               </h1>
               <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-500/20">
                 <ShieldCheck className="h-3 w-3" />

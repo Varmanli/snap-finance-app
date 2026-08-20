@@ -11,17 +11,17 @@ const vazirmatn = Vazirmatn({
 });
 
 export const metadata: Metadata = {
-  title: 'مدیریت مالی و استهلاک خودرو سفیر اسنپ',
-  description: 'سامانه آفلاین مدیریت درآمد واقعی، محاسبه استهلاک خودرو و برنامه پس‌انداز هدف رانندگان اسنپ',
+  title: 'سفیر‌حساب | مدیریت هوشمند مالی و استهلاک اسنپ',
+  description: 'حسابدار آفلاین کارکرد، استهلاک خودرو، سود واقعی و برنامه پس‌انداز هدف ۴۰۰ میلیونی سفیران اسنپ',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'سفرمالی',
+    title: 'سفیر‌حساب',
   },
   icons: {
     icon: '/icons/icon-192.png',
-    apple: '/icons/icon-192.png',
+    apple: '/icons/apple-touch-icon.png',
   },
 };
 
