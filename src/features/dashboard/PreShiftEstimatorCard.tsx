@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { PersianNumberInput } from '@/components/ui/PersianNumberInput';
-import { formatToman, formatNumber } from '@/lib/formatters/currency';
+import { TomanAmount, TomanIcon } from '@/components/ui/TomanAmount';
+import { formatNumber } from '@/lib/formatters/currency';
 import { Calculator, Fuel, ShieldAlert, ArrowLeftRight, CheckCircle2 } from 'lucide-react';
 
 interface PreShiftEstimatorCardProps {
@@ -69,7 +70,7 @@ export function PreShiftEstimatorCard({ depreciationRate }: PreShiftEstimatorCar
               استهلاک خودرو ({formatNumber(depreciationRate)} ت/ک‌م)
             </div>
             <div className="text-xs sm:text-sm font-bold text-rose-400 mt-1">
-              {formatToman(estimatedDepreciation)}
+              <TomanAmount amount={estimatedDepreciation} iconClassName="h-3.5 w-3.5 text-rose-400" />
             </div>
           </div>
 
@@ -80,7 +81,7 @@ export function PreShiftEstimatorCard({ depreciationRate }: PreShiftEstimatorCar
               هزینه سوخت تخمینی (~۸.۵ لتر)
             </div>
             <div className="text-xs sm:text-sm font-bold text-amber-400 mt-1">
-              {formatToman(estimatedFuelCost)}
+              <TomanAmount amount={estimatedFuelCost} iconClassName="h-3.5 w-3.5 text-amber-400" />
             </div>
           </div>
 
@@ -91,14 +92,14 @@ export function PreShiftEstimatorCard({ depreciationRate }: PreShiftEstimatorCar
               حداقل درآمد ناخالص پیشنهادی
             </div>
             <div className="text-xs sm:text-sm font-black text-teal-400 mt-1">
-              {formatToman(requiredGrossIncome)}
+              <TomanAmount amount={requiredGrossIncome} iconClassName="h-4 w-4 text-teal-400" />
             </div>
           </div>
         </div>
 
         <p className="text-[10px] text-zinc-500 flex items-center gap-1">
           <ArrowLeftRight className="h-3.5 w-3.5 text-teal-400 shrink-0" />
-          برای کسب سود خالص {formatToman(targetNetProfit)} پس از کسر استهلاک و سوخت، باید حداقل {formatToman(requiredGrossIncome)} درآمد اسنپ کسب کنید.
+          برای کسب سود خالص <TomanAmount amount={targetNetProfit} className="text-zinc-300" /> پس از کسر استهلاک و سوخت، باید حداقل <TomanAmount amount={requiredGrossIncome} className="text-teal-400" /> درآمد اسنپ کسب کنید.
         </p>
       </div>
     </Card>

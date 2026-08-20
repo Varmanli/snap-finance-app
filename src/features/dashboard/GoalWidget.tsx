@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
+import { TomanAmount } from '@/components/ui/TomanAmount';
 import { TrajectoryForecast } from '@/types';
 import { formatToman, formatNumber } from '@/lib/formatters/currency';
 import { Target, Calendar, TrendingUp, Sparkles } from 'lucide-react';
@@ -20,8 +21,9 @@ export function GoalWidget({ forecast, goalTargetAmount }: GoalWidgetProps) {
           <Target className="h-5 w-5 text-emerald-400 shrink-0" />
           <span>هدف بزرگ مالی: خرید خودروی جدید</span>
         </CardTitle>
-        <span className="self-start sm:self-auto text-[11px] sm:text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 whitespace-nowrap">
-          هدف: {formatToman(goalTargetAmount)}
+        <span className="self-start sm:self-auto text-[11px] sm:text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 whitespace-nowrap flex items-center gap-1">
+          <span>هدف:</span>
+          <TomanAmount amount={goalTargetAmount} iconClassName="h-3.5 w-3.5 text-emerald-400" />
         </span>
       </CardHeader>
 
@@ -62,8 +64,9 @@ export function GoalWidget({ forecast, goalTargetAmount }: GoalWidgetProps) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[11px] font-medium text-zinc-400 truncate">میانگین پس‌انداز ۳۰ روز اخیر</div>
-              <div className="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 truncate">
-                {formatToman(forecast.average30DayRealDailyProfit)} / روز
+              <div className="text-xs sm:text-sm font-bold text-amber-400 mt-0.5 truncate flex items-center gap-1">
+                <TomanAmount amount={forecast.average30DayRealDailyProfit} iconClassName="h-3.5 w-3.5 text-amber-400" />
+                <span className="text-[10px] text-zinc-400">/ روز</span>
               </div>
               <div className="text-[10px] text-zinc-500 mt-0.5 truncate">بر اساس سود واقعی خالص</div>
             </div>
@@ -76,8 +79,9 @@ export function GoalWidget({ forecast, goalTargetAmount }: GoalWidgetProps) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[11px] font-medium text-zinc-400 truncate">پس‌انداز مورد نیاز تا ددلاین</div>
-              <div className="text-xs sm:text-sm font-bold text-blue-400 mt-0.5 truncate">
-                {formatToman(forecast.requiredDailySavingsToDeadline)} / روز
+              <div className="text-xs sm:text-sm font-bold text-blue-400 mt-0.5 truncate flex items-center gap-1">
+                <TomanAmount amount={forecast.requiredDailySavingsToDeadline} iconClassName="h-3.5 w-3.5 text-blue-400" />
+                <span className="text-[10px] text-zinc-400">/ روز</span>
               </div>
               <div className="text-[10px] text-zinc-500 mt-0.5 truncate">هدف زمان‌بندی: ۱ فروردین ۱۴۰۶</div>
             </div>
