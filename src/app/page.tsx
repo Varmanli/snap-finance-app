@@ -8,6 +8,8 @@ import { GoalWidget } from '@/features/dashboard/GoalWidget';
 import { DepreciationCard } from '@/features/dashboard/DepreciationCard';
 import { TodaySummary } from '@/features/dashboard/TodaySummary';
 import { ServiceAlerts } from '@/features/dashboard/ServiceAlerts';
+import { SmartInsightsCard } from '@/features/dashboard/SmartInsightsCard';
+import { PreShiftEstimatorCard } from '@/features/dashboard/PreShiftEstimatorCard';
 import { DailyRecordModal } from '@/features/daily-record/DailyRecordModal';
 import { calculateTrajectoryForecast } from '@/lib/calculations/trajectory';
 import { calculateDepreciationFund, aggregateRecordsSummary } from '@/lib/calculations/financial';
@@ -65,7 +67,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 glass-card p-4 sm:p-5 border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 via-zinc-900 to-zinc-950">
         <div>
           <h2 className="text-lg sm:text-2xl font-black text-zinc-100 tracking-tight">
-            داشبورد اجرایی سفیر اسنپ
+            داشبورد اجرایی سفیر‌حساب
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400 mt-0.5 sm:mt-1">
             تحلیل سود واقعی اقتصادی، مدیریت استهلاک و پایش آنلاین هدف ۴۰۰ میلیونی
@@ -127,6 +129,12 @@ export default function DashboardPage() {
 
       {/* 400M Toman Goal Forecast Widget */}
       <GoalWidget forecast={forecast} goalTargetAmount={settings.goalTargetAmount} />
+
+      {/* 2-Column Grid: Smart Insights & Pre-Shift Estimator */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <SmartInsightsCard records={records} depreciationRate={settings.depreciationRate} />
+        <PreShiftEstimatorCard depreciationRate={settings.depreciationRate} />
+      </div>
 
       {/* 2-Column Grid: Virtual Depreciation Fund & Vehicle Service Warnings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
