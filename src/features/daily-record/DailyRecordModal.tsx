@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
 import { TimePicker24 } from '@/components/ui/TimePicker24';
+import { PersianNumberInput } from '@/components/ui/PersianNumberInput';
 import { db } from '@/lib/db/dexie';
 import { getTodayISO, formatJalaliDate } from '@/lib/formatters/jalali';
-import { formatToman, formatNumber, toPersianDigits } from '@/lib/formatters/currency';
+import { formatToman, formatNumber } from '@/lib/formatters/currency';
 import { calculateShiftSummary } from '@/lib/calculations/financial';
 import { DailyRecord } from '@/types';
 import { DollarSign, Fuel, Navigation, CheckCircle2, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
@@ -211,12 +212,10 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
             <label className="block text-xs font-bold text-amber-400 mb-1">
               مسافت کارکرد امروز (کیلومتر)
             </label>
-            <input
-              type="number"
-              step="5"
-              placeholder="مثلاً ۲۲۰ کیلومتر"
-              value={shiftKm || ''}
-              onChange={(e) => setShiftKm(Number(e.target.value))}
+            <PersianNumberInput
+              value={shiftKm}
+              onChange={setShiftKm}
+              placeholder="مثلاً ۲۲۰"
               className="w-full rounded-xl border border-amber-500/50 bg-zinc-950 px-4 py-2.5 text-base font-black text-amber-400 text-center focus:border-amber-400 focus:outline-none"
               required
             />
@@ -229,12 +228,10 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
             <DollarSign className="h-4 w-4" />
             درآمد ناخالص اسنپ (تومان)
           </label>
-          <input
-            type="number"
-            step="50000"
-            placeholder="مثلا ۲,۵۰۰,۰۰۰ تومان"
-            value={grossIncome || ''}
-            onChange={(e) => setGrossIncome(Number(e.target.value))}
+          <PersianNumberInput
+            value={grossIncome}
+            onChange={setGrossIncome}
+            placeholder="مثلا ۲,۵۰۰,۰۰۰"
             className="w-full rounded-xl border border-emerald-500 bg-zinc-950 px-4 py-3 text-lg font-black text-emerald-400 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             required
           />
@@ -261,49 +258,41 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-zinc-800 mt-2.5">
               <div>
                 <label className="block text-[11px] text-zinc-400 mb-1">بنزین / گاز</label>
-                <input
-                  type="number"
-                  step="10000"
+                <PersianNumberInput
+                  value={fuelExpense}
+                  onChange={setFuelExpense}
                   placeholder="۰"
-                  value={fuelExpense || ''}
-                  onChange={(e) => setFuelExpense(Number(e.target.value))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] text-zinc-400 mb-1">پارکینگ</label>
-                <input
-                  type="number"
-                  step="5000"
+                <PersianNumberInput
+                  value={parkingExpense}
+                  onChange={setParkingExpense}
                   placeholder="۰"
-                  value={parkingExpense || ''}
-                  onChange={(e) => setParkingExpense(Number(e.target.value))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] text-zinc-400 mb-1">عوارض</label>
-                <input
-                  type="number"
-                  step="5000"
+                <PersianNumberInput
+                  value={tollExpense}
+                  onChange={setTollExpense}
                   placeholder="۰"
-                  value={tollExpense || ''}
-                  onChange={(e) => setTollExpense(Number(e.target.value))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] text-zinc-400 mb-1">کارواش / سایر</label>
-                <input
-                  type="number"
-                  step="10000"
+                <PersianNumberInput
+                  value={carwashExpense}
+                  onChange={setCarwashExpense}
                   placeholder="۰"
-                  value={carwashExpense || ''}
-                  onChange={(e) => setCarwashExpense(Number(e.target.value))}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-zinc-200 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
             </div>

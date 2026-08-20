@@ -51,3 +51,17 @@ export function formatDecimal(val: number, decimals: number = 1): string {
   const result = decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
   return toPersianDigits(result);
 }
+
+/**
+ * Converts Persian/Arabic digits to English digits and removes non-numeric characters (commas, spaces).
+ * e.g. "۲,۶۰,۰۰۰" -> 260000
+ */
+export function parsePersianNumber(str: string): number {
+  if (!str) return 0;
+  const englishStr = str
+    .replace(/[۰-۹]/g, (d) => (d.charCodeAt(0) - 1776).toString())
+    .replace(/[٠-٩]/g, (d) => (d.charCodeAt(0) - 1632).toString())
+    .replace(/[^0-9]/g, '');
+  const parsed = parseInt(englishStr, 10);
+  return isNaN(parsed) ? 0 : parsed;
+}
