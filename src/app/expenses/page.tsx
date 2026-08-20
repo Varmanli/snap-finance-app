@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { toast } from 'sonner';
 import { db } from '@/lib/db/dexie';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
+import { PersianNumberInput } from '@/components/ui/PersianNumberInput';
 import { Badge } from '@/components/ui/Badge';
 import { VehicleExpense, VehicleExpenseCategory } from '@/types';
 import { formatToman, formatNumber } from '@/lib/formatters/currency';
@@ -35,11 +37,21 @@ export default function ExpensesPage() {
     .reduce((sum, e) => sum + (e.amount || 0), 0);
   const paidOutOfPocketTotal = totalSpent - paidFromFundTotal;
 
-  const handleDeleteExpense = async (id?: number) => {
+  const handleDeleteExpense = (id?: number) => {
     if (!id) return;
-    if (confirm('آیا از حذف این هزینه اطمینان دارید؟')) {
-      await db.vehicleExpenses.delete(id);
-    }
+    toast('آیا از حذف این هزینه اطمینان دارید؟', {
+      action: {
+        label: 'حذف قطعی',
+        onClick: async () => {
+          await db.vehicleExpenses.delete(id);
+          toast.success('هزینه خودرو با موفقیت حذف شد.');
+        },
+      },
+      cancel: {
+        label: 'انصراف',
+        onClick: () => {},
+      },
+    });
   };
 
   return (
@@ -58,42 +70,49 @@ export default function ExpensesPage() {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 px-4 py-2.5 text-xs font-bold text-zinc-950 transition-all cursor-pointer shrink-0"
+          className="flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 px-4 py-2 text-xs font-bold text-zinc-950 transition-all cursor-pointer shrink-0"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
-          <span>ثبت هزینه خودرو</span>
+          <span>ثبت هزینه جدید</span>
         </button>
       </div>
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Summary Tiles */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
           <div className="text-xs text-zinc-400">مجموع کل هزینه‌های خودرو</div>
-          <div className="text-xl font-black text-zinc-100 mt-1">{formatToman(totalSpent)}</div>
+          <div className="text-lg font-bold text-zinc-100 mt-1">{formatToman(totalSpent)}</div>
+          <div className="text-[10px] text-zinc-500 mt-1">{formatNumber(expenses.length)} مورد ثبت‌شده</div>
+        </div>
+
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-4">
+          <div className="text-xs font-semibold text-emerald-300 flex items-center gap-1">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            پرداخت شده از صندوق استهلاک
+          </div>
+          <div className="text-lg font-black text-emerald-400 mt-1">{formatToman(paidFromFundTotal)}</div>
+          <div className="text-[10px] text-emerald-500/80 mt-1">بدون فشار به سود خالص روزانه</div>
         </div>
 
         <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4">
           <div className="text-xs font-semibold text-amber-300 flex items-center gap-1">
-            <PiggyBank className="h-4 w-4" /> پرداختی از صندوق استهلاک
+            <PiggyBank className="h-3.5 w-3.5" />
+            پرداخت مستقیم از جیب
           </div>
-          <div className="text-xl font-black text-amber-400 mt-1">{formatToman(paidFromFundTotal)}</div>
-        </div>
-
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-          <div className="text-xs text-zinc-400">پرداختی شخصی از جیب</div>
-          <div className="text-xl font-black text-rose-400 mt-1">{formatToman(paidOutOfPocketTotal)}</div>
+          <div className="text-lg font-black text-amber-400 mt-1">{formatToman(paidOutOfPocketTotal)}</div>
+          <div className="text-[10px] text-amber-500/80 mt-1">هزینه‌های جاری بدون پوشش صندوق</div>
         </div>
       </div>
 
       {/* Expenses Table */}
       <Card>
         <CardHeader>
-          <CardTitle>سوابق هزینه‌ها ({expenses.length})</CardTitle>
+          <CardTitle>سوابق هزینه و تعمیرات ({expenses.length})</CardTitle>
         </CardHeader>
 
         {expenses.length === 0 ? (
-          <div className="text-center py-10 text-zinc-500 text-sm">
-            هنوز هزینه‌ای برای خودرو ثبت نشده است.
+          <div className="text-center py-12 text-zinc-500 text-sm">
+            هنوز هیچ هزینه خودرویی ثبت نشده است.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -101,10 +120,10 @@ export default function ExpensesPage() {
               <thead className="border-b border-zinc-800 bg-zinc-950/50 text-zinc-400">
                 <tr>
                   <th className="p-3">تاریخ</th>
-                  <th className="p-3">دسته هزینه</th>
-                  <th className="p-3">کیلومتر کارکرد</th>
+                  <th className="p-3">دسته‌بندی</th>
+                  <th className="p-3">کیلومتر</th>
                   <th className="p-3">مبلغ (تومان)</th>
-                  <th className="p-3 text-center">پرداخت از صندوق استهلاک</th>
+                  <th className="p-3 text-center">منبع پرداخت</th>
                   <th className="p-3">توضیحات</th>
                   <th className="p-3 text-center">عملیات</th>
                 </tr>
@@ -120,11 +139,9 @@ export default function ExpensesPage() {
                     <td className="p-3 font-bold text-zinc-100">{formatToman(exp.amount)}</td>
                     <td className="p-3 text-center">
                       {exp.paidFromDepreciationFund ? (
-                        <Badge variant="amber" className="text-[10px]">
-                          <ShieldCheck className="h-3 w-3" /> بله (از صندوق)
-                        </Badge>
+                        <Badge variant="emerald">صندوق استهلاک</Badge>
                       ) : (
-                        <Badge variant="zinc" className="text-[10px]">خیر (شخصی)</Badge>
+                        <Badge variant="amber">پرداخت از جیب</Badge>
                       )}
                     </td>
                     <td className="p-3 text-zinc-400 max-w-xs truncate">{exp.notes || '-'}</td>
@@ -145,35 +162,39 @@ export default function ExpensesPage() {
         )}
       </Card>
 
-      {/* Add Expense Modal */}
-      <AddExpenseModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* New Expense Modal */}
+      <ExpenseModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
 
-function AddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function ExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [date, setDate] = useState(getTodayISO());
   const [km, setKm] = useState<number>(100000);
   const [category, setCategory] = useState<VehicleExpenseCategory>('engine_oil');
   const [amount, setAmount] = useState<number>(0);
+  const [paidFromDepreciationFund, setPaidFromDepreciationFund] = useState<boolean>(true);
   const [notes, setNotes] = useState('');
-  const [paidFromDepreciationFund, setPaidFromDepreciationFund] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (amount <= 0) return;
+    if (!amount || amount <= 0) {
+      toast.warning('لطفاً مبلغ پرداختی را وارد کنید.');
+      return;
+    }
 
     const newExpense: VehicleExpense = {
       date,
       km,
       category,
       amount,
-      notes,
       paidFromDepreciationFund,
+      notes,
       createdAt: new Date().toISOString(),
     };
 
     await db.vehicleExpenses.add(newExpense);
+    toast.success('هزینه خودرو با موفقیت ثبت شد.');
     onClose();
   };
 
@@ -189,10 +210,10 @@ function AddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
 
           <div>
             <label className="block text-xs font-medium text-zinc-400 mb-1">کیلومتر خودرو</label>
-            <input
-              type="number"
+            <PersianNumberInput
               value={km}
-              onChange={(e) => setKm(Number(e.target.value))}
+              onChange={setKm}
+              placeholder="مثلا ۱۰۶,۰۰۰"
               className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500 focus:outline-none"
               required
             />
@@ -204,7 +225,7 @@ function AddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as VehicleExpenseCategory)}
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500 focus:outline-none"
+            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500 focus:outline-none cursor-pointer"
           >
             {Object.entries(CATEGORY_NAMES).map(([key, name]) => (
               <option key={key} value={key}>
@@ -216,12 +237,10 @@ function AddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
 
         <div>
           <label className="block text-xs font-bold text-amber-400 mb-1">مبلغ پرداختی (تومان)</label>
-          <input
-            type="number"
-            step="50000"
-            placeholder="مثلا ۷۵۰,۰۰۰ تومان"
-            value={amount || ''}
-            onChange={(e) => setAmount(Number(e.target.value))}
+          <PersianNumberInput
+            value={amount}
+            onChange={setAmount}
+            placeholder="مثلا ۷۵۰,۰۰۰"
             className="w-full rounded-lg border border-amber-500/40 bg-zinc-950 px-3 py-2 text-base font-bold text-amber-400 focus:border-amber-400 focus:outline-none"
             required
           />
@@ -256,13 +275,13 @@ function AddExpenseModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800 transition-colors"
+            className="rounded-xl px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             انصراف
           </button>
           <button
             type="submit"
-            className="rounded-xl bg-amber-500 hover:bg-amber-400 px-5 py-2 text-sm font-bold text-zinc-950 transition-all cursor-pointer"
+            className="rounded-xl bg-amber-500 hover:bg-amber-400 px-5 py-2 font-bold text-zinc-950 cursor-pointer transition-all"
           >
             ثبت هزینه
           </button>

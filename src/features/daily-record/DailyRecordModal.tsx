@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Modal } from '@/components/ui/Modal';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
 import { TimePicker24 } from '@/components/ui/TimePicker24';
@@ -10,15 +11,16 @@ import { getTodayISO, formatJalaliDate } from '@/lib/formatters/jalali';
 import { formatToman, formatNumber } from '@/lib/formatters/currency';
 import { calculateShiftSummary } from '@/lib/calculations/financial';
 import { DailyRecord } from '@/types';
-import { DollarSign, Fuel, Navigation, CheckCircle2, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
+import { DollarSign, Fuel, Navigation, CheckCircle2, Calendar, ChevronDown, ChevronUp, Edit3 } from 'lucide-react';
 
 interface DailyRecordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  recordToEdit?: DailyRecord | null;
 }
 
-export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModalProps) {
+export function DailyRecordModal({ isOpen, onClose, onSuccess, recordToEdit }: DailyRecordModalProps) {
   const [date, setDate] = useState(getTodayISO());
   const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [startTime, setStartTime] = useState('07:30');
@@ -35,7 +37,9 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
   const [depreciationRate, setDepreciationRate] = useState<number>(1800);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load last odometer reading & depreciation rate from settings
+  const isEditMode = !!recordToEdit;
+
+  // Populate form fields on edit or reset on create
   useEffect(() => {
     if (isOpen) {
       async function initForm() {
@@ -44,17 +48,46 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
           setDepreciationRate(settings.depreciationRate || 1800);
         }
 
-        // Fetch latest endKm from last record
-        const latestRecord = await db.dailyRecords.orderBy('endKm').last();
-        if (latestRecord && latestRecord.endKm) {
-          setStartKm(latestRecord.endKm);
+        if (recordToEdit) {
+          setDate(recordToEdit.date);
+          setStartTime(recordToEdit.startTime);
+          setEndTime(recordToEdit.endTime);
+          setStartKm(recordToEdit.startKm);
+          setShiftKm(recordToEdit.distanceKm);
+          setGrossIncome(recordToEdit.grossIncome);
+          setFuelExpense(recordToEdit.fuelExpense || 0);
+          setParkingExpense(recordToEdit.parkingExpense || 0);
+          setTollExpense(recordToEdit.tollExpense || 0);
+          setCarwashExpense(recordToEdit.carwashExpense || 0);
+          setOtherExpenses(recordToEdit.otherExpenses || 0);
+          if ((recordToEdit.fuelExpense || 0) + (recordToEdit.parkingExpense || 0) + (recordToEdit.tollExpense || 0) + (recordToEdit.carwashExpense || 0) > 0) {
+            setShowExpensesGrid(true);
+          }
         } else {
-          setStartKm(100000);
+          // New shift mode
+          setDate(getTodayISO());
+          setStartTime('07:30');
+          setEndTime('16:30');
+          setGrossIncome(0);
+          setFuelExpense(0);
+          setParkingExpense(0);
+          setTollExpense(0);
+          setCarwashExpense(0);
+          setOtherExpenses(0);
+          setShowExpensesGrid(false);
+
+          // Fetch latest endKm from last record
+          const latestRecord = await db.dailyRecords.orderBy('endKm').last();
+          if (latestRecord && latestRecord.endKm) {
+            setStartKm(latestRecord.endKm);
+          } else {
+            setStartKm(100000);
+          }
         }
       }
       initForm();
     }
-  }, [isOpen]);
+  }, [isOpen, recordToEdit]);
 
   // Derived values
   const distanceKm = Math.max(0, shiftKm || 0);
@@ -90,13 +123,13 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (distanceKm <= 0) {
-      alert('لطفاً مسافت طی شده این شیفت را وارد کنید.');
+      toast.warning('لطفاً مسافت طی شده این شیفت را وارد کنید.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const newRecord: DailyRecord = {
+      const recordPayload: Omit<DailyRecord, 'id'> = {
         date,
         startTime,
         endTime,
@@ -110,18 +143,25 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
         tollExpense: tollExpense || 0,
         carwashExpense: carwashExpense || 0,
         otherExpenses: otherExpenses || 0,
-        fatigueLevel: 5,
-        moodLevel: 7,
-        createdAt: new Date().toISOString(),
+        fatigueLevel: recordToEdit?.fatigueLevel || 5,
+        moodLevel: recordToEdit?.moodLevel || 7,
+        notes: recordToEdit?.notes || '',
+        createdAt: recordToEdit?.createdAt || new Date().toISOString(),
       };
 
-      await db.dailyRecords.add(newRecord);
+      if (recordToEdit && recordToEdit.id) {
+        await db.dailyRecords.update(recordToEdit.id, recordPayload);
+        toast.success('شیفت کاری با موفقیت ویرایش شد.');
+      } else {
+        await db.dailyRecords.add(recordPayload);
+        toast.success('شیفت کاری جدید با موفقیت ثبت شد.');
+      }
 
       onSuccess?.();
       onClose();
     } catch (err) {
       console.error('Failed to save daily record:', err);
-      alert('خطا در ذخیره‌سازی اطلاعات شیفت.');
+      toast.error('خطا در ذخیره‌سازی اطلاعات شیفت.');
     } finally {
       setIsSubmitting(false);
     }
@@ -130,7 +170,12 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
   const isToday = date === getTodayISO();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="ثبت سریع شیفت کاری (< ۳۰ ثانیه)" maxWidth="max-w-xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditMode ? 'ویرایش شیفت کاری ثبت‌شده' : 'ثبت سریع شیفت کاری (< ۳۰ ثانیه)'}
+      maxWidth="max-w-xl"
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* 1. Modern & Compact Date / Time Bar */}
         <div className="bg-zinc-950/60 p-3 rounded-2xl border border-zinc-800 space-y-2.5">
@@ -337,8 +382,8 @@ export function DailyRecordModal({ isOpen, onClose, onSuccess }: DailyRecordModa
             disabled={isSubmitting}
             className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 py-3 text-sm font-black text-zinc-950 shadow-lg shadow-emerald-950/60 transition-all cursor-pointer disabled:opacity-50"
           >
-            <CheckCircle2 className="h-5 w-5 stroke-[2.5]" />
-            <span>{isSubmitting ? 'در حال ثبت...' : 'ثبت نهایی شیفت'}</span>
+            {isEditMode ? <Edit3 className="h-5 w-5 stroke-[2.5]" /> : <CheckCircle2 className="h-5 w-5 stroke-[2.5]" />}
+            <span>{isSubmitting ? 'در حال ذخیره‌سازی...' : isEditMode ? 'ذخیره تغییرات شیفت' : 'ثبت نهایی شیفت'}</span>
           </button>
         </div>
       </form>

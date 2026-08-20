@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Toaster } from 'sonner';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -21,6 +22,9 @@ export function AppClientLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Toast Notifications Provider */}
+      <Toaster position="top-center" dir="rtl" richColors theme="dark" closeButton />
+
       {/* Top Header */}
       <Header onOpenQuickRecord={() => setIsQuickRecordOpen(true)} />
 

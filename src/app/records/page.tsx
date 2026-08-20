@@ -2,19 +2,20 @@
 
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { toast } from 'sonner';
 import { db } from '@/lib/db/dexie';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { calculateShiftSummary, aggregateRecordsSummary } from '@/lib/calculations/financial';
 import { formatJalaliDate, getPersianDayName, formatTime24 } from '@/lib/formatters/jalali';
 import { formatToman, formatNumber, toPersianDigits } from '@/lib/formatters/currency';
 import { DailyRecordModal } from '@/features/daily-record/DailyRecordModal';
 import { DailyRecord } from '@/types';
-import { Calendar, Search, Trash2, Plus, Zap, Smile } from 'lucide-react';
+import { Calendar, Search, Trash2, Edit3, Plus, Zap, Smile } from 'lucide-react';
 
 export default function RecordsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [recordToEdit, setRecordToEdit] = useState<DailyRecord | null>(null);
 
   const records = useLiveQuery(() => db.dailyRecords.orderBy('date').reverse().toArray(), []) || [];
   const settingsList = useLiveQuery(() => db.settings.toArray(), []) || [];
@@ -28,11 +29,31 @@ export default function RecordsPage() {
 
   const aggregate = aggregateRecordsSummary(filteredRecords, depreciationRate);
 
-  const handleDeleteRecord = async (id?: number) => {
+  const handleOpenCreate = () => {
+    setRecordToEdit(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (record: DailyRecord) => {
+    setRecordToEdit(record);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteRecord = (id?: number) => {
     if (!id) return;
-    if (confirm('آیا از حذف این شیفت کاری اطمینان دارید؟')) {
-      await db.dailyRecords.delete(id);
-    }
+    toast('آیا از حذف این شیفت کاری اطمینان دارید؟', {
+      action: {
+        label: 'حذف قطعی',
+        onClick: async () => {
+          await db.dailyRecords.delete(id);
+          toast.success('شیفت کاری با موفقیت حذف شد.');
+        },
+      },
+      cancel: {
+        label: 'انصراف',
+        onClick: () => {},
+      },
+    });
   };
 
   return (
@@ -50,7 +71,7 @@ export default function RecordsPage() {
         </div>
 
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenCreate}
           className="flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 px-4 py-2 text-xs font-bold text-zinc-950 transition-all cursor-pointer shrink-0"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
@@ -140,21 +161,30 @@ export default function RecordsPage() {
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <span className="flex items-center gap-0.5 text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                            <Zap className="h-3 w-3" /> {r.fatigueLevel}
+                            <Zap className="h-3 w-3" /> {toPersianDigits(r.fatigueLevel)}
                           </span>
                           <span className="flex items-center gap-0.5 text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                            <Smile className="h-3 w-3" /> {r.moodLevel}
+                            <Smile className="h-3 w-3" /> {toPersianDigits(r.moodLevel)}
                           </span>
                         </div>
                       </td>
                       <td className="p-3 text-center">
-                        <button
-                          onClick={() => handleDeleteRecord(r.id)}
-                          className="rounded p-1 text-zinc-500 hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
-                          title="حذف شیفت"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleOpenEdit(r)}
+                            className="rounded p-1 text-zinc-400 hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors cursor-pointer"
+                            title="ویرایش شیفت"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRecord(r.id)}
+                            className="rounded p-1 text-zinc-500 hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
+                            title="حذف شیفت"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -165,7 +195,14 @@ export default function RecordsPage() {
         )}
       </Card>
 
-      <DailyRecordModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <DailyRecordModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setRecordToEdit(null);
+        }}
+        recordToEdit={recordToEdit}
+      />
     </div>
   );
 }

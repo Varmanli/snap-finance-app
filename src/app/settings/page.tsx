@@ -2,26 +2,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { toast } from 'sonner';
 import { db, DEFAULT_SETTINGS, hardResetLocalDatabase } from '@/lib/db/dexie';
 import { seedDatabaseIfEmpty } from '@/lib/db/seed';
 import { exportBackupJSON, validateBackupJSON, restoreBackupJSON } from '@/lib/backup/export-import';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
+import { PersianNumberInput } from '@/components/ui/PersianNumberInput';
 import { Settings as SettingsType, BackupData } from '@/types';
-import { formatToman, formatNumber } from '@/lib/formatters/currency';
 import { Settings, Save, Download, Upload, RefreshCw, Car, Target, ShieldCheck, CheckCircle, AlertTriangle, Trash2 } from 'lucide-react';
 
 export default function SettingsPage() {
   const settingsList = useLiveQuery(() => db.settings.toArray(), []) || [];
-  const currentSettings = settingsList[0] || DEFAULT_SETTINGS;
 
   const [formData, setFormData] = useState<SettingsType>(DEFAULT_SETTINGS);
   const [isSaved, setIsSaved] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
 
   // Restore state modal
-  const [importFile, setImportFile] = useState<File | null>(null);
+  const [, setImportFile] = useState<File | null>(null);
   const [parsedBackup, setParsedBackup] = useState<BackupData | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -41,6 +41,7 @@ export default function SettingsPage() {
     const updated = { ...formData, updatedAt: new Date().toISOString() };
     await db.settings.put(updated);
     setIsSaved(true);
+    toast.success('تنظیمات با موفقیت ذخیره گردید.');
     setTimeout(() => setIsSaved(false), 3000);
   };
 
@@ -58,6 +59,7 @@ export default function SettingsPage() {
         const { valid, error, parsedData } = validateBackupJSON(json);
         if (!valid) {
           setImportError(error || 'ساختار فایل معتبر نیست.');
+          toast.error(error || 'ساختار فایل معتبر نیست.');
           setParsedBackup(null);
         } else if (parsedData) {
           setParsedBackup(parsedData);
@@ -65,6 +67,7 @@ export default function SettingsPage() {
         }
       } catch (err) {
         setImportError('فایل انتخاب شده یک JSON معتبر نمی‌باشد.');
+        toast.error('فایل انتخاب شده یک JSON معتبر نمی‌باشد.');
         setParsedBackup(null);
       }
     };
@@ -79,31 +82,41 @@ export default function SettingsPage() {
       setIsConfirmModalOpen(false);
       setParsedBackup(null);
       setImportFile(null);
-      alert('اطلاعات با موفقیت بازیابی شد.');
-      window.location.reload();
+      toast.success('اطلاعات با موفقیت از فایل پشتیبان بازیابی شد.');
+      setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
       console.error(err);
-      alert('خطا در بازیابی پشتیبان.');
+      toast.error('خطا در بازیابی پشتیبان.');
     }
   };
 
   const handleResetMockData = async () => {
-    if (confirm('آیا مایلید داده‌ها را پاکسازی کرده و ۳۰ روز شیفت آزمایشی جدید تولید کنید؟')) {
-      setIsSeeding(true);
-      await seedDatabaseIfEmpty(true);
-      setIsSeeding(false);
-      alert('داده‌های ۳۰ روز شیفت کاری اسنپ مجدداً تولید گردید.');
-      window.location.reload();
-    }
+    toast('آیا مایلید ۳۰ روز داده آزمایشی جدید تولید کنید؟', {
+      action: {
+        label: 'تولید داده',
+        onClick: async () => {
+          setIsSeeding(true);
+          await seedDatabaseIfEmpty(true);
+          setIsSeeding(false);
+          toast.success('داده‌های ۳۰ روز شیفت کاری اسنپ مجدداً تولید گردید.');
+          setTimeout(() => window.location.reload(), 1000);
+        },
+      },
+      cancel: {
+        label: 'انصراف',
+        onClick: () => {},
+      },
+    });
   };
 
   const handleClearAllData = async () => {
     setIsClearing(true);
     try {
+      toast.success('داده‌ها پاکسازی شدند. در حال بارگذاری مجدد...');
       await hardResetLocalDatabase();
     } catch (err) {
       console.error('Failed to clear database:', err);
-      alert('خطا در پاکسازی پایگاه داده.');
+      toast.error('خطا در پاکسازی پایگاه داده.');
       setIsClearing(false);
     }
   };
@@ -157,10 +170,9 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1">کیلومتر اولیه شروع به کار</label>
-              <input
-                type="number"
+              <PersianNumberInput
                 value={formData.initialKm || 100000}
-                onChange={(e) => setFormData({ ...formData, initialKm: Number(e.target.value) })}
+                onChange={(val) => setFormData({ ...formData, initialKm: val })}
                 className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500 focus:outline-none"
                 required
               />
@@ -168,11 +180,9 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-bold text-amber-400 mb-1">نرخ استهلاک (تومان / کیلومتر)</label>
-              <input
-                type="number"
-                step="100"
+              <PersianNumberInput
                 value={formData.depreciationRate || 1800}
-                onChange={(e) => setFormData({ ...formData, depreciationRate: Number(e.target.value) })}
+                onChange={(val) => setFormData({ ...formData, depreciationRate: val })}
                 className="w-full rounded-lg border border-amber-500/40 bg-zinc-950 px-3 py-2 text-sm font-bold text-amber-400 focus:border-amber-400 focus:outline-none"
                 required
               />
@@ -192,10 +202,9 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1">سقف کارکرد روزانه (کیلومتر)</label>
-              <input
-                type="number"
+              <PersianNumberInput
                 value={formData.targetDailyKm || 250}
-                onChange={(e) => setFormData({ ...formData, targetDailyKm: Number(e.target.value) })}
+                onChange={(val) => setFormData({ ...formData, targetDailyKm: val })}
                 className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500 focus:outline-none"
                 required
               />
@@ -203,11 +212,9 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1">هدف درآمد روزانه (تومان)</label>
-              <input
-                type="number"
-                step="100000"
+              <PersianNumberInput
                 value={formData.targetDailyIncome || 2500000}
-                onChange={(e) => setFormData({ ...formData, targetDailyIncome: Number(e.target.value) })}
+                onChange={(val) => setFormData({ ...formData, targetDailyIncome: val })}
                 className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500 focus:outline-none"
                 required
               />
@@ -215,11 +222,9 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1">مبلغ هدف کل پس‌انداز (تومان)</label>
-              <input
-                type="number"
-                step="10000000"
+              <PersianNumberInput
                 value={formData.goalTargetAmount || 400000000}
-                onChange={(e) => setFormData({ ...formData, goalTargetAmount: Number(e.target.value) })}
+                onChange={(val) => setFormData({ ...formData, goalTargetAmount: val })}
                 className="w-full rounded-lg border border-emerald-500/40 bg-zinc-950 px-3 py-2 text-sm font-bold text-emerald-400 focus:border-emerald-400 focus:outline-none"
                 required
               />
@@ -275,7 +280,10 @@ export default function SettingsPage() {
             </div>
             <button
               type="button"
-              onClick={exportBackupJSON}
+              onClick={() => {
+                exportBackupJSON();
+                toast.success('فایل پشتیبان JSON با موفقیت دانلود شد.');
+              }}
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 py-2 text-xs font-bold transition-all cursor-pointer"
             >
               <span>دانلود فایل JSON</span>
@@ -371,7 +379,7 @@ export default function SettingsPage() {
             <div className="flex justify-end gap-3 pt-3 border-t border-zinc-800">
               <button
                 onClick={() => setIsConfirmModalOpen(false)}
-                className="rounded-xl px-4 py-2 text-zinc-400 hover:bg-zinc-800"
+                className="rounded-xl px-4 py-2 text-zinc-400 hover:bg-zinc-800 cursor-pointer"
               >
                 انصراف
               </button>
