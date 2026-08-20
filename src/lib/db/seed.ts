@@ -1,23 +1,28 @@
-// 30-Day Mock Seed Data Generator for Dexie.js
+// 30-Day Mock Seed Data Generator for Dexie.js (Manual Trigger Only)
 
 import { db, DEFAULT_SETTINGS } from './dexie';
 import { DailyRecord, VehicleExpense, MaintenanceService, CapitalTransaction, PersonalGoal } from '@/types';
 
 export async function seedDatabaseIfEmpty(forceReset: boolean = false) {
-  const recordCount = await db.dailyRecords.count();
-  if (recordCount > 0 && !forceReset) {
-    return; // Already populated
+  // STRICT RULE: Mock seed data MUST ONLY be generated when forceReset === true
+  // (when user explicitly clicks "تولید داده آزمایشی ۳۰ روزه" in Settings)
+  if (!forceReset) {
+    return;
   }
 
-  if (forceReset) {
-    await db.transaction('rw', [db.dailyRecords, db.vehicleExpenses, db.maintenanceServices, db.capitalTransactions, db.personalGoals, db.settings], async () => {
-      await db.dailyRecords.clear();
-      await db.vehicleExpenses.clear();
-      await db.maintenanceServices.clear();
-      await db.capitalTransactions.clear();
-      await db.personalGoals.clear();
-      await db.settings.clear();
-    });
+  // Clear existing database tables before generating fresh 30-day demo dataset
+  await db.transaction('rw', [db.dailyRecords, db.vehicleExpenses, db.maintenanceServices, db.capitalTransactions, db.personalGoals, db.settings], async () => {
+    await db.dailyRecords.clear();
+    await db.vehicleExpenses.clear();
+    await db.maintenanceServices.clear();
+    await db.capitalTransactions.clear();
+    await db.personalGoals.clear();
+    await db.settings.clear();
+  });
+
+  // Set is_seeded flag in localStorage
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('is_seeded', 'true');
   }
 
   // 1. Save Default Settings

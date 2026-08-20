@@ -47,32 +47,42 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 /**
- * Completely wipes all Dexie tables, deletes IndexedDB database, clears browser storage,
- * and performs a hard window reload to reset the application to pristine zero state.
+ * Completely wipes all Dexie tables, resets settings to clean initial state,
+ * sets is_seeded = 'false' in localStorage, and performs a hard reload.
  */
 export async function hardResetLocalDatabase() {
   try {
-    // Clear all tables
-    await Promise.all(db.tables.map((table) => table.clear()));
+    // 1. Clear all Dexie data tables
+    await db.transaction('rw', [db.dailyRecords, db.vehicleExpenses, db.maintenanceServices, db.capitalTransactions, db.personalGoals, db.settings], async () => {
+      await db.dailyRecords.clear();
+      await db.vehicleExpenses.clear();
+      await db.maintenanceServices.clear();
+      await db.capitalTransactions.clear();
+      await db.personalGoals.clear();
+      await db.settings.clear();
+      // Put clean initial settings
+      await db.settings.put(DEFAULT_SETTINGS);
+    });
 
-    // Close active connection and delete IndexedDB
-    await db.close();
-    await Dexie.delete('SnappDriverFinanceDB');
-
-    // Clear browser storage fallbacks
+    // 2. Clear browser storage & set is_seeded flag to false
     if (typeof window !== 'undefined') {
       localStorage.clear();
       sessionStorage.clear();
+      localStorage.setItem('is_seeded', 'false');
     }
 
-    // Hard reload
+    // 3. Hard reload to homepage with fresh clean state
     if (typeof window !== 'undefined') {
       window.location.href = '/';
     }
   } catch (error) {
     console.error('Failed to reset DB:', error);
-    if (typeof window !== 'undefined' && window.indexedDB) {
-      window.indexedDB.deleteDatabase('SnappDriverFinanceDB');
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+      localStorage.setItem('is_seeded', 'false');
+      if (window.indexedDB) {
+        window.indexedDB.deleteDatabase('SnappDriverFinanceDB');
+      }
       window.location.href = '/';
     }
   }

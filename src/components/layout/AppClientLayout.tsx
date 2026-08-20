@@ -5,14 +5,11 @@ import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { DailyRecordModal } from '@/features/daily-record/DailyRecordModal';
-import { seedDatabaseIfEmpty } from '@/lib/db/seed';
 
 export function AppClientLayout({ children }: { children: React.ReactNode }) {
   const [isQuickRecordOpen, setIsQuickRecordOpen] = useState(false);
 
   useEffect(() => {
-    seedDatabaseIfEmpty(false).catch((err) => console.error('Auto seed error:', err));
-
     // Register Service Worker for offline PWA functionality
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker
