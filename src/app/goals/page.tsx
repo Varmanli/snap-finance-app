@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
 import { db } from '@/lib/db/dexie';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Pagination } from '@/components/ui/Pagination';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Modal } from '@/components/ui/Modal';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
@@ -15,9 +16,12 @@ import { formatToman, formatNumber, toPersianDigits } from '@/lib/formatters/cur
 import { formatJalaliDate, getTodayISO } from '@/lib/formatters/jalali';
 import { Target, ArrowUpRight, ArrowDownLeft, Plus, Clock, Trash2, Heart } from 'lucide-react';
 
+const CAPITAL_TX_PAGE_SIZE = 8;
+
 export default function GoalsPage() {
   const [isCapitalModalOpen, setIsCapitalModalOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [capitalTxPage, setCapitalTxPage] = useState(1);
 
   const capitalTxs = useLiveQuery(() => db.capitalTransactions.orderBy('date').reverse().toArray(), []) || [];
   const personalGoals = useLiveQuery(() => db.personalGoals.toArray(), []) || [];
@@ -26,6 +30,12 @@ export default function GoalsPage() {
   const settings = settingsList[0] || { goalTargetAmount: 400000000, goalTargetDate: '2027-03-21', depreciationRate: 1800 };
 
   const forecast = calculateTrajectoryForecast(records, capitalTxs, settings);
+
+  const capitalTxTotalPages = Math.ceil(capitalTxs.length / CAPITAL_TX_PAGE_SIZE);
+  const paginatedCapitalTxs = capitalTxs.slice(
+    (capitalTxPage - 1) * CAPITAL_TX_PAGE_SIZE,
+    capitalTxPage * CAPITAL_TX_PAGE_SIZE
+  );
 
   const handleDeleteCapitalTx = (id?: number) => {
     if (!id) return;
@@ -159,51 +169,62 @@ export default function GoalsPage() {
               هنوز هیچ تراکنشی ثبت نشده است.
             </div>
           ) : (
-            <div className="divide-y divide-zinc-800">
-              {capitalTxs.map((tx) => (
-                <div key={tx.id || tx.createdAt} className="p-3 flex items-center justify-between hover:bg-zinc-900/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`p-2 rounded-xl border ${
-                        tx.type === 'deposit'
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                          : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                      }`}
-                    >
-                      {tx.type === 'deposit' ? (
-                        <ArrowDownLeft className="h-4 w-4" />
-                      ) : (
-                        <ArrowUpRight className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-zinc-200">
-                        {tx.type === 'deposit' ? 'واریز به صندوق' : 'برداشت از صندوق'}
+            <div className="space-y-3">
+              <div className="divide-y divide-zinc-800">
+                {paginatedCapitalTxs.map((tx) => (
+                  <div key={tx.id || tx.createdAt} className="p-3 flex items-center justify-between hover:bg-zinc-900/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`p-2 rounded-xl border ${
+                          tx.type === 'deposit'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                        }`}
+                      >
+                        {tx.type === 'deposit' ? (
+                          <ArrowDownLeft className="h-4 w-4" />
+                        ) : (
+                          <ArrowUpRight className="h-4 w-4" />
+                        )}
                       </div>
-                      <div className="text-[11px] text-zinc-500 mt-0.5">
-                        {formatJalaliDate(tx.date)} {tx.note && `• ${tx.note}`}
+                      <div>
+                        <div className="text-xs font-bold text-zinc-200">
+                          {tx.type === 'deposit' ? 'واریز به صندوق' : 'برداشت از صندوق'}
+                        </div>
+                        <div className="text-[11px] text-zinc-500 mt-0.5">
+                          {formatJalaliDate(tx.date)} {tx.note && `• ${tx.note}`}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`text-xs font-bold ${
-                        tx.type === 'deposit' ? 'text-emerald-400' : 'text-rose-400'
-                      }`}
-                    >
-                      {tx.type === 'deposit' ? '+' : '-'}{formatToman(tx.amount)}
-                    </span>
-                    <button
-                      onClick={() => handleDeleteCapitalTx(tx.id)}
-                      className="rounded p-1 text-zinc-500 hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
-                      title="حذف تراکنش"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`text-xs font-bold ${
+                          tx.type === 'deposit' ? 'text-emerald-400' : 'text-rose-400'
+                        }`}
+                      >
+                        {tx.type === 'deposit' ? '+' : '-'}{formatToman(tx.amount)}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteCapitalTx(tx.id)}
+                        className="rounded p-1 text-zinc-500 hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
+                        title="حذف تراکنش"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              <Pagination
+                currentPage={capitalTxPage}
+                totalPages={capitalTxTotalPages}
+                totalItems={capitalTxs.length}
+                pageSize={CAPITAL_TX_PAGE_SIZE}
+                onPageChange={setCapitalTxPage}
+              />
             </div>
           )}
         </Card>

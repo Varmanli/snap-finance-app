@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
 import { db } from '@/lib/db/dexie';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Pagination } from '@/components/ui/Pagination';
 import { Modal } from '@/components/ui/Modal';
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker';
 import { PersianNumberInput } from '@/components/ui/PersianNumberInput';
@@ -26,8 +27,11 @@ const CATEGORY_NAMES: Record<VehicleExpenseCategory, string> = {
   other: 'سایر هزینه‌ها',
 };
 
+const PAGE_SIZE = 10;
+
 export default function ExpensesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const expenses = useLiveQuery(() => db.vehicleExpenses.orderBy('date').reverse().toArray(), []) || [];
 
@@ -36,6 +40,9 @@ export default function ExpensesPage() {
     .filter((e) => e.paidFromDepreciationFund)
     .reduce((sum, e) => sum + (e.amount || 0), 0);
   const paidOutOfPocketTotal = totalSpent - paidFromFundTotal;
+
+  const totalPages = Math.ceil(expenses.length / PAGE_SIZE);
+  const paginatedExpenses = expenses.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const handleDeleteExpense = (id?: number) => {
     if (!id) return;
@@ -115,49 +122,60 @@ export default function ExpensesPage() {
             هنوز هیچ هزینه خودرویی ثبت نشده است.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs text-zinc-300">
-              <thead className="border-b border-zinc-800 bg-zinc-950/50 text-zinc-400">
-                <tr>
-                  <th className="p-3">تاریخ</th>
-                  <th className="p-3">دسته‌بندی</th>
-                  <th className="p-3">کیلومتر</th>
-                  <th className="p-3">مبلغ (تومان)</th>
-                  <th className="p-3 text-center">منبع پرداخت</th>
-                  <th className="p-3">توضیحات</th>
-                  <th className="p-3 text-center">عملیات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/60">
-                {expenses.map((exp) => (
-                  <tr key={exp.id || exp.createdAt} className="hover:bg-zinc-900/50 transition-colors">
-                    <td className="p-3 font-semibold text-zinc-100">{formatJalaliDate(exp.date)}</td>
-                    <td className="p-3 font-medium text-amber-400">
-                      {CATEGORY_NAMES[exp.category] || exp.category}
-                    </td>
-                    <td className="p-3 text-zinc-300">{formatNumber(exp.km)} کیلومتر</td>
-                    <td className="p-3 font-bold text-zinc-100">{formatToman(exp.amount)}</td>
-                    <td className="p-3 text-center">
-                      {exp.paidFromDepreciationFund ? (
-                        <Badge variant="emerald">صندوق استهلاک</Badge>
-                      ) : (
-                        <Badge variant="amber">پرداخت از جیب</Badge>
-                      )}
-                    </td>
-                    <td className="p-3 text-zinc-400 max-w-xs truncate">{exp.notes || '-'}</td>
-                    <td className="p-3 text-center">
-                      <button
-                        onClick={() => handleDeleteExpense(exp.id)}
-                        className="rounded p-1 text-zinc-500 hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
-                        title="حذف هزینه"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
+          <div className="space-y-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-right text-xs text-zinc-300">
+                <thead className="border-b border-zinc-800 bg-zinc-950/50 text-zinc-400">
+                  <tr>
+                    <th className="p-3">تاریخ</th>
+                    <th className="p-3">دسته‌بندی</th>
+                    <th className="p-3">کیلومتر</th>
+                    <th className="p-3">مبلغ (تومان)</th>
+                    <th className="p-3 text-center">منبع پرداخت</th>
+                    <th className="p-3">توضیحات</th>
+                    <th className="p-3 text-center">عملیات</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/60">
+                  {paginatedExpenses.map((exp) => (
+                    <tr key={exp.id || exp.createdAt} className="hover:bg-zinc-900/50 transition-colors">
+                      <td className="p-3 font-semibold text-zinc-100">{formatJalaliDate(exp.date)}</td>
+                      <td className="p-3 font-medium text-amber-400">
+                        {CATEGORY_NAMES[exp.category] || exp.category}
+                      </td>
+                      <td className="p-3 text-zinc-300">{formatNumber(exp.km)} کیلومتر</td>
+                      <td className="p-3 font-bold text-zinc-100">{formatToman(exp.amount)}</td>
+                      <td className="p-3 text-center">
+                        {exp.paidFromDepreciationFund ? (
+                          <Badge variant="emerald">صندوق استهلاک</Badge>
+                        ) : (
+                          <Badge variant="amber">پرداخت از جیب</Badge>
+                        )}
+                      </td>
+                      <td className="p-3 text-zinc-400 max-w-xs truncate">{exp.notes || '-'}</td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleDeleteExpense(exp.id)}
+                          className="rounded p-1 text-zinc-500 hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
+                          title="حذف هزینه"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={expenses.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </Card>

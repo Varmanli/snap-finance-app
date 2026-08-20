@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
 import { db } from '@/lib/db/dexie';
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Pagination } from '@/components/ui/Pagination';
 import { calculateShiftSummary, aggregateRecordsSummary } from '@/lib/calculations/financial';
 import { formatJalaliDate, getPersianDayName, formatTime24 } from '@/lib/formatters/jalali';
 import { formatToman, formatNumber, toPersianDigits } from '@/lib/formatters/currency';
@@ -12,8 +13,11 @@ import { DailyRecordModal } from '@/features/daily-record/DailyRecordModal';
 import { DailyRecord } from '@/types';
 import { Calendar, Search, Trash2, Edit3, Plus, Zap, Smile } from 'lucide-react';
 
+const PAGE_SIZE = 10;
+
 export default function RecordsPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [recordToEdit, setRecordToEdit] = useState<DailyRecord | null>(null);
 
@@ -27,7 +31,15 @@ export default function RecordsPage() {
     return r.date.includes(searchTerm) || jalaliStr.includes(searchTerm) || (r.notes && r.notes.includes(searchTerm));
   });
 
+  const totalPages = Math.ceil(filteredRecords.length / PAGE_SIZE);
+  const paginatedRecords = filteredRecords.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const aggregate = aggregateRecordsSummary(filteredRecords, depreciationRate);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   const handleOpenCreate = () => {
     setRecordToEdit(null);
@@ -106,7 +118,7 @@ export default function RecordsPage() {
           type="text"
           placeholder="جستجو در تاریخ یا یادداشت‌های شیفت..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           className="w-full rounded-xl border border-zinc-800 bg-zinc-950 pr-10 pl-4 py-2.5 text-sm text-zinc-200 focus:border-emerald-500 focus:outline-none"
         />
       </div>
@@ -122,10 +134,10 @@ export default function RecordsPage() {
             هیچ شیفت کاری با مشخصات وارد شده یافت نشد.
           </div>
         ) : (
-          <>
+          <div className="space-y-4">
             {/* Mobile View: Cards List (< md) */}
             <div className="block md:hidden space-y-3">
-              {filteredRecords.map((r) => {
+              {paginatedRecords.map((r) => {
                 const summary = calculateShiftSummary(r, depreciationRate);
                 const dayName = getPersianDayName(r.date);
 
@@ -147,14 +159,14 @@ export default function RecordsPage() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleOpenEdit(r)}
-                          className="rounded-lg p-1.5 bg-zinc-900 text-zinc-300 hover:text-emerald-400 border border-zinc-800 transition-colors"
+                          className="rounded-lg p-1.5 bg-zinc-900 text-zinc-300 hover:text-emerald-400 border border-zinc-800 transition-colors cursor-pointer"
                           title="ویرایش"
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteRecord(r.id)}
-                          className="rounded-lg p-1.5 bg-zinc-900 text-zinc-400 hover:text-rose-400 border border-zinc-800 transition-colors"
+                          className="rounded-lg p-1.5 bg-zinc-900 text-zinc-400 hover:text-rose-400 border border-zinc-800 transition-colors cursor-pointer"
                           title="حذف"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -212,7 +224,7 @@ export default function RecordsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/60">
-                  {filteredRecords.map((r) => {
+                  {paginatedRecords.map((r) => {
                     const summary = calculateShiftSummary(r, depreciationRate);
                     const dayName = getPersianDayName(r.date);
 
@@ -266,7 +278,16 @@ export default function RecordsPage() {
                 </tbody>
               </table>
             </div>
-          </>
+
+            {/* Pagination Controls */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredRecords.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         )}
       </Card>
 
